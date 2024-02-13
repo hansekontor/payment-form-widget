@@ -132,6 +132,7 @@
             last_name: "",
             address: "",
             country: "",
+            countryAlpha2: "",
             state: "",
             city: "",
             zip: "",
@@ -257,6 +258,10 @@
                 }
             });
 
+            if (!(values.countryAlpha2 && values.callingCode)) {
+                err.country = true;
+            }
+
             let isValid = false;
             if (
                 !(err.address ||
@@ -291,6 +296,7 @@
                 setValues({
                     ...values,
                     [name]: value,
+                    countryAlpha2: selectedCountry.code,
                     callingCode: selectedCountry.callingCode
                 })
             } else {
@@ -299,7 +305,7 @@
         }        
         
         // auto-complete month and add slash: month / year
-        const handleExpirationInput = (e) => {
+        const handleExpirationOnKeyUp = (e) => {
             var inputChar = String.fromCharCode(event.keyCode);
             var code = event.keyCode;
             var allowedKeys = [8];
@@ -370,10 +376,11 @@
             e.preventDefault();
 
             const valuesToSubmit = {
+                amount,
                 first_name: values.first_name,
                 last_name: values.last_name,
                 address: values.address,
-                country: values.country,
+                country: values.countryAlpha2,
                 state: values.state,
                 city: values.city,
                 zip: values.zip,
@@ -381,11 +388,11 @@
                 phone_no: String(values.callingCode) + String(values.phone),
                 card_no: values.card_no,
                 ccExpiryMonth: values.ccExpiryMonth,
-                ccExpiryYear: values.ccExpiryYear,
+                ccExpiryYear: "20" + String(values.ccExpiryYear),
                 cvvNumber: values.cvvNumber,
             };            
-            //const url = `https://dev.cert.cash:5010/payment/${sandbox ? "sandbox" : "live"}`;
-            const url = `http://localhost:8000/payment/${sandbox ? "sandbox" : "live"}`;
+            const url = `https://dev.cert.cash:5010/payment/${sandbox ? "sandbox" : "live"}`;
+            //const url = `http://localhost:8000/payment/${sandbox ? "sandbox" : "live"}`;
             const options = {
                 method: "POST", 
                 mode: "cors",
@@ -402,7 +409,7 @@
                 setPaymentStatus("Payment Incomplete/Failed");
             }
             setSpin(false);
-            console.log("payment response code/msg", response.code);
+            console.log("payment response", data.responseCode, data.responseMessage);
         }
 
 
@@ -569,19 +576,6 @@
                                                     readOnly={paymentAllowed}
                                                 />
                                             </Item>
-
-                                            <HiddenInput 
-                                                type="number"
-                                                name="amount"
-                                                value={amount}
-                                                readOnly={true}
-                                            />  
-                                            <HiddenInput    
-                                                type="text"
-                                                name="customId"
-                                                value="#customerId"
-                                                readOnly={true}
-                                            />
 
                                             <Errors>
                                                 <>
