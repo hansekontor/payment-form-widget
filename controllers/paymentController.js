@@ -8,13 +8,13 @@ module.exports = {
         const input = req.body;
         console.log("postPayment input", input);
         
-        const url = "https://sandbox.cmpct.org/v2?test=uptime";
+        const url = "https://portal.gatewaypay.io/api/transaction";
         const result = await axios.get(url);
-        const status = result.data === "success" ? true : false;
         console.log("result", result.data);
+        const responseCode = result.data.responseCode;
+        const responseMessage = result.data.responseMessage;
 
-        // add response management
-        return res.render('Status', { status });
+        return res.json({ responseCode, responseMessage });
     },
     async postSandbox(req, res) {
         const input = req.body;
@@ -40,17 +40,18 @@ module.exports = {
     
         const result = await axios.post(sandboxUrl, form, options);
         console.log("result", result.data);
+        const responseCode = result.data.responseCode;
+        const responseMessage = result.data.responseMessage;
 
-        const status = true;
-        // add response management
-        return res.render('Result', { status });
+        return res.json({ responseCode, responseMessage });
     },
     async postPaymentResult(req, res) {
         const result = req.body;
         const code = result.responseCode;
         const msg = result.responseMessage;
+        // process payment...
         console.log("postPaymentResult", result);
 
-        return res.render('Status', { code, msg });
+        return res.send("OK");
     }
 }

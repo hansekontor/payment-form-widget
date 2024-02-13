@@ -1,18 +1,21 @@
 {
-  "name": "express-template",
+  "name": "payment-form-widget",
+  "author": "Olav",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www",
+    "build": "browserify main.js > ./public/js/bundle.js",
     "test": "./node_modules/mocha/bin/mocha"
   },
   "dependencies": {
+    "@hapi/boom": "^10.0.1",
     "axios": "^1.6.7",
     "bee-queue": "^1.2.2",
-    "boom": "^7.3.0",
     "card-validator": "^9.0.0",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
+    "country-data": "^0.0.31",
     "debug": "~2.6.9",
     "dotenv": "^7.0.0",
     "express": "^4.18.2",

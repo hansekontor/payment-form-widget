@@ -1,5 +1,6 @@
 <div id="root"></div>
 <script type="text/babel" data-presets="es2015,react">
+    // styled css components
     const CustomApp = window.styled.div`
         display: flex;
         align-items: center;
@@ -54,28 +55,10 @@
             border: solid 0.5px black; 
         }
     `; 
-    const ExpiryInputCtn = window.styled.div`
-        height: 24px;
-        background-color: #ffffff;
-        display: inline-flex;
-    `;
-    const ExpiryInput = window.styled.input`
-        height: 24px;
-        border: 0;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        background-color: #F6F6F6;
-    `;
-    const Slash = window.styled.span`
-        border: 0;
-        line-height: 25px;
-        padding: 0;
-        margin: 0;
-    `;
-    const ExpiryItem = window.styled(Item)`
-        width: 140px;
-    `;
+    const PrefixInput = window.styled(Input)`
+        width: 40px;
+        font-weight: 600;
+    }`;
     const PrimaryButton = window.styled.button`
         all: unset;
         align-items: center;
@@ -88,6 +71,16 @@
         position: relative; 
         width: 100%;
         cursor: pointer;
+    `;
+    const SpinOverlay = window.styled.div`
+        position: fixed;
+        background-color: grey;
+        height: 100vh;
+        width: 100vh;
+        opacity: .5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     `;
     const Spin = window.styled.div`
         width: 50px;
@@ -111,14 +104,30 @@
     const HiddenInput = window.styled(Input)`
         display: none;
     `;
+    const StyledSelect = window.styled.select`
+        height: 48px;
+        width: 100%;
+        min-width: 50px;
+        background-color: #F6F6F6;
+        border-radius: 8px;
+        border: ${props => props.error ? 'solid 0.5px red' : 'none'};
+        line-height: 24px;
+        
+        &:focus {
+            border: solid 0.5px black; 
+        }
+    `;
+    const Result = window.styled.p``;
 
     const App = () => {
+
+        // collect xprops from parent window
         const amount = window.xprops?.amount || 3.33;
         const sandbox = window.xprops?.sandbox || true;
-        //const {amount, sandbox} = useXProps();
-        console.log("App amount", amount, "sandbox", sandbox);
-        const [sectionToShow, setSectionToShow] = window.React.useState(0);
-        const [values, setValues] = window.React.useState({
+
+        // init states
+        const [sectionToShow, setSectionToShow] = React.useState(0);
+        const [values, setValues] = React.useState({
             first_name: "",
             last_name: "",
             address: "",
@@ -127,23 +136,31 @@
             city: "",
             zip: "",
             email: "",
-            phone_no: "",
+            phone: "",
             card_no: "",
             expiration: "",
-            cvv: "",
-            focus: ""
+            ccExpiryMonth: "",
+            ccExpiryYear: "",
+            cvvNumber: "",
+            focus: "",
+            callingCode: "",
         });
-        const [errors, setErrors] = window.React.useState({});
-        const [paymentAllowed, setPaymentAllowed] = window.React.useState(false);
-        const [spin, setSpin] = window.React.useState(false);
+        const [errors, setErrors] = React.useState({});
+        const [paymentAllowed, setPaymentAllowed] = React.useState(false);
+        const [spin, setSpin] = React.useState(false);
+        const [paymentStatus, setPaymentStatus] = React.useState(false);
 
+        const sleep = (ms) => {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // validates credit card data with card-validator
         const validateCC = () => {
-            console.log("validateCC called");
             let err = {
                 first_name: false,
                 last_name: false,
                 card_no: false,
-                cvv: false,
+                cvvNumber: false,
                 expiration: false,
                 zip: false,
             };
@@ -151,7 +168,7 @@
             let creditCard = window.valid.number(values.card_no);
 
             creditCard.expirationDate = window.valid.expirationDate(values.expiration);
-            creditCard.cvv = window.valid.cvv(values.cvv);
+            creditCard.cvv = window.valid.cvv(values.cvvNumber);
             const fullName = values.first_name + " " + values.last_name;
             creditCard.cardholderName = window.valid.cardholderName(fullName);
             creditCard.postalCode = window.valid.postalCode(values.zip);
@@ -165,10 +182,10 @@
             }
 
             // CVV
-            if (values.cvv === null || !values.cvv.trim()) {
-                err.cvv = true;
+            if (values.cvvNumber === null || !values.cvvNumber.trim()) {
+                err.cvvNumber = true;
             } else if (!creditCard.cvv.isValid) {
-                err.cvv = true;
+                err.cvvNumber = true;
             } 
 
             // Expiration
@@ -176,6 +193,12 @@
                 err.expiration = true;
             } else if (!creditCard.expirationDate.isValid) {
                 err.expiration = true;
+            } else {
+                setValues({
+                    ...values,
+                    ccExpiryMonth: creditCard.expirationDate.month,
+                    ccExpiryYear: creditCard.expirationDate.year
+                })
             }
 
             // Card Number
@@ -202,7 +225,7 @@
                 !(err.first_name ||
                 err.last_name ||
                 err.card_no ||
-                err.cvv ||
+                err.cvvNumberNumber ||
                 err.expiration ||
                 err.zip)
             ) {
@@ -214,6 +237,8 @@
             return isValid;
 
         }
+        
+        // validates remaining address data
         const validateAddress = () => {
             let err = {
                 address: false,
@@ -221,7 +246,8 @@
                 state: false,
                 city: false,
                 email: false,
-                phone_no: false,
+                phone: false,
+                callingCode: false
             };
 
             const keys = Object.keys(err);
@@ -238,7 +264,7 @@
                 err.state || 
                 err.city ||
                 err.email ||
-                err.phone_no)
+                err.phone)
             ) {
                 isValid = true;
             }
@@ -247,7 +273,8 @@
 
             return isValid;
         }
-        
+
+        // standard handler to set new form values to state
         const handleChange = (e) => {
             const {name, value} = e.target;
             setValues({
@@ -255,13 +282,23 @@
                 [name] : value
             });
         };
-        const handleFocus = (e) => {
-            setValues({ 
-                ...values,
-//                focus: (e.target.name === 'cardSecurityCode') ? 'cvc' : e.target.name
-                focus: e.target.name
-            });
-        };
+
+        // specific handler to set country specific values to state
+        const handleCountryChange = (e) => {
+            const {name, value} = e.target;
+            const selectedCountry = window.Countries.find(country => country.label === value);
+            if (selectedCountry) {
+                setValues({
+                    ...values,
+                    [name]: value,
+                    callingCode: selectedCountry.callingCode
+                })
+            } else {
+                handleChange(e);
+            }
+        }        
+        
+        // auto-complete month and add slash: month / year
         const handleExpirationInput = (e) => {
             var inputChar = String.fromCharCode(event.keyCode);
             var code = event.keyCode;
@@ -287,10 +324,12 @@
             );
 
         };
-        const handleCardNoInput = (e) => {
+        
+        // add spaces every 4 digits
+        const handleCardOnKeyUp = (e) => {
             var inputChar = String.fromCharCode(event.keyCode);
             var code = event.code;
-            var allowedKeys = [8];
+            var allowedKeys = [8, "Backspace"];
             if (allowedKeys.indexOf(code) !== -1) {
                 return;
             }
@@ -305,33 +344,77 @@
                         return number;
                 }).join('');
         };
-        
-        const sleep = (ms) => {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+
+        // handle validation of credit card section and proceed to next section
         const handleNext = async () => {
-            console.log("handleNext called");
             const isValid = validateCC();
             if (isValid)
                 setSectionToShow(1);
         }  
+        
+        // handle back to previous section
         const handlePrev = () => {
             setSectionToShow(0);
         }
-        const handleToPayment = () => {
+
+        // handle validation of address section and unlock pay button
+        const handleToPayment = async () => {
             const isValid = validateAddress();
             if (isValid)
-                setPaymentAllowed(true);
+                setPaymentAllowed(true)
         }
         
+        // handle form submission: show spin, post form, stop spin & show result
+        const handleOnSubmit = async (e) => {
+            setSpin(true);
+            e.preventDefault();
+
+            const valuesToSubmit = {
+                first_name: values.first_name,
+                last_name: values.last_name,
+                address: values.address,
+                country: values.country,
+                state: values.state,
+                city: values.city,
+                zip: values.zip,
+                email: values.email,
+                phone_no: String(values.callingCode) + String(values.phone),
+                card_no: values.card_no,
+                ccExpiryMonth: values.ccExpiryMonth,
+                ccExpiryYear: values.ccExpiryYear,
+                cvvNumber: values.cvvNumber,
+            };            
+            //const url = `https://dev.cert.cash:5010/payment/${sandbox ? "sandbox" : "live"}`;
+            const url = `http://localhost:8000/payment/${sandbox ? "sandbox" : "live"}`;
+            const options = {
+                method: "POST", 
+                mode: "cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(valuesToSubmit)
+            }
+            const response = await fetch(url, options);
+            const data = await response.json();
+            if (data.responseCode == 1) {
+                setPaymentStatus("Payment approved");
+            } else {
+                setPaymentStatus("Payment Incomplete/Failed");
+            }
+            setSpin(false);
+            console.log("payment response code/msg", response.code);
+        }
+
+
         return (
             <CustomApp>
-                <>
-                    {spin ? (
-                        <Spin />
-                    ) : (
-                        <FormBody>                
-                            <Form action={sandbox ? "/payment/sandbox" : "/payment/live" } method="post">
+                <FormBody>                
+                    <>
+                        {spin && <SpinOverlay><Spin /></SpinOverlay>}
+                        {paymentStatus ? (
+                            <Result>{paymentStatus}</Result>
+                        ) : (               
+                            <Form onSubmit={(e) => handleOnSubmit(e)}>
                                 <FormHeader>
                                     <HeaderText>PAY WITH CARD {sandbox ? "- SANDBOX" : ""}</HeaderText>
                                     <Price>${amount}</Price>
@@ -345,7 +428,7 @@
                                                 name="card_no"
                                                 value={values.card_no}
                                                 onChange={handleChange}
-                                                onKeyUp={handleCardNoInput}
+                                                onKeyUp={handleCardOnKeyUp}
                                                 error={errors.card_no}
                                             />
                                             </Item>      
@@ -356,15 +439,15 @@
                                                     //value={values.ccExpiration} errors in combination with onKeyUp+onChange
                                                     maxLength="5"
                                                     onChange={handleChange}
-                                                    onKeyUp={handleExpirationInput}
+                                                    onKeyUp={handleExpirationOnKeyUp}
                                                     error={errors.expiration}
                                                 />                                        
                                                 <Input type="number"
                                                     placeholder="CVV" 
-                                                    name="cvv" 
-                                                    value={values.cvv}
+                                                    name="cvvNumber" 
+                                                    value={values.cvvNumber}
                                                     onChange={handleChange}
-                                                    error={errors.cvv}
+                                                    error={errors.cvvNumber}
                                                 />  
                                             </Item>
                                             <Item>
@@ -398,7 +481,7 @@
                                                 <>
                                                     {(errors.card_no || 
                                                     errors.expiration ||
-                                                    errors.cvv ||
+                                                    errors.cvvNumber ||
                                                     errors.first_name || 
                                                     errors.last_name ||
                                                     errors.zip) && 
@@ -419,16 +502,25 @@
                                                     value={values.address}
                                                     onChange={handleChange}
                                                     error={errors.address}
+                                                    readOnly={paymentAllowed}
                                                 />
                                             </Item>
                                             <Item>
-                                                <Input type="text"
+                                                <Input 
+                                                    list="countries"                                                     
                                                     placeholder="Country" 
                                                     name="country"
-                                                    value={values.country}
-                                                    onChange={handleChange}
+                                                    value={values.country} 
+                                                    onChange={handleCountryChange}
                                                     error={errors.country}
+                                                    defaultValue=""
+                                                    readOnly={paymentAllowed}
                                                 />
+                                                <datalist id="countries">
+                                                    {window.Countries.map((country, index) => (
+                                                        <option value={country.label} key={country.label} />
+                                                    ))}
+                                                </datalist>
                                             </Item>
                                             <Item>
                                                 <Input type="text"
@@ -437,6 +529,7 @@
                                                     value={values.state}
                                                     onChange={handleChange}
                                                     error={errors.state}
+                                                    readOnly={paymentAllowed}
                                                 />
                                                 <Input type="text"
                                                     placeholder="City" 
@@ -444,6 +537,7 @@
                                                     value={values.city}
                                                     onChange={handleChange}
                                                     error={errors.city}
+                                                    readOnly={paymentAllowed}
                                                 />
                                             </Item>
                                             <Item>
@@ -453,15 +547,26 @@
                                                     value={values.email}
                                                     onChange={handleChange}
                                                     error={errors.email}
+                                                    readOnly={paymentAllowed}
                                                 />
                                             </Item>
                                             <Item>
+                                                <PrefixInput
+                                                    type="text"
+                                                    placeholder="+ ..."
+                                                    name="callingCode"
+                                                    onChange={handleChange}
+                                                    error={errors.callingCode}                                                    
+                                                    defaultValue={values.callingCode}
+                                                    readOnly={paymentAllowed}
+                                                />
                                                 <Input type="text"
                                                     placeholder="Phone" 
-                                                    name="phone_no"
-                                                    value={values.phone_no}
+                                                    name="phone"
+                                                    value={values.phone}
                                                     onChange={handleChange}
-                                                    error={errors.phone_no}
+                                                    error={errors.phone}
+                                                    readOnly={paymentAllowed}
                                                 />
                                             </Item>
 
@@ -469,11 +574,13 @@
                                                 type="number"
                                                 name="amount"
                                                 value={amount}
+                                                readOnly={true}
                                             />  
                                             <HiddenInput    
                                                 type="text"
                                                 name="customId"
                                                 value="#customerId"
+                                                readOnly={true}
                                             />
 
                                             <Errors>
@@ -483,7 +590,7 @@
                                                     errors.state ||
                                                     errors.city || 
                                                     errors.email ||
-                                                    errors.phone_no) && 
+                                                    errors.phone) && 
                                                         <Error>Invalid or missing fields. Please review.</Error>
                                                     }
                                                 </>                
@@ -494,8 +601,8 @@
                                                         <PrimaryButton type="submit">Pay</PrimaryButton>
                                                     ) : (
                                                         <>
-                                                        <PrimaryButton type="button" onClick={() => setSectionToShow(0)}>Prev</PrimaryButton>
-                                                        <PrimaryButton type="button" onClick={() => handleToPayment()}>Next</PrimaryButton>
+                                                            <PrimaryButton type="button" onClick={() => setSectionToShow(0)}>Prev</PrimaryButton>
+                                                            <PrimaryButton type="button" onClick={() => handleToPayment()}>Next</PrimaryButton>
                                                         </>
                                                     )}
                                                 </>
@@ -504,14 +611,14 @@
                                     )}
                                 </>
                             </Form>
-                        </FormBody>                        
-                    )}
-                </>
+                        )}
+                    </>
+                </FormBody>                        
             </CustomApp>
         );
     }
 
-    window.ReactDOM.render(
+    ReactDOM.render(
         <React.StrictMode>
             <App />
         </React.StrictMode>,
