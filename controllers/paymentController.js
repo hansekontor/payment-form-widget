@@ -28,7 +28,7 @@ module.exports = {
             ... input,
             ip_address: ipAddress,
             currency: "USD",
-            response_url: "https://dev.cert.cash:5010/payment/listen"
+            response_url: process.env.RESPONSE_URL
         };
     
         const sandboxUrl = "https://portal.gatewaypay.io/api/test/transaction";
