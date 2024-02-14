@@ -1,5 +1,18 @@
 <div id="root"></div>
 <script type="text/babel" data-presets="es2015,react">
+
+    // init zoid component
+    window.Widget = zoid.create({
+        tag: "payment-form-widget",
+        url: "{{{ widgetUrl }}}",
+        dimensions: {
+            width: "100%",
+            height: "100%"
+        },
+        autoresize: false,
+    });
+
+
     // styled css components
     const CustomApp = window.styled.div`
         display: flex;
@@ -101,9 +114,6 @@
         width: fit-content;
     `;
     const Price = window.styled(HeaderText)``;
-    const HiddenInput = window.styled(Input)`
-        display: none;
-    `;
     const StyledSelect = window.styled.select`
         height: 48px;
         width: 100%;

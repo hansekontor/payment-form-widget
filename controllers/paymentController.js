@@ -7,9 +7,22 @@ module.exports = {
     async postPayment(req, res) {
         const input = req.body;
         console.log("postPayment input", input);
+        const ipAddress = req.socket.remoteAddress;
         
+        const form = {
+            ... input,
+            ip_address: ipAddress,
+            currency: "USD",
+            response_url: process.env.RESPONSE_URL
+        };
+
         const url = "https://portal.gatewaypay.io/api/transaction";
-        const result = await axios.get(url);
+        const options = {
+            headers: {
+                    'Authorization': `Bearer ${process.env.API_KEY}`
+            }
+    };
+        const result = await axios.post(url, form, options);
         console.log("result", result.data);
         const responseCode = result.data.responseCode;
         const responseMessage = result.data.responseMessage;
@@ -18,11 +31,8 @@ module.exports = {
     },
     async postSandbox(req, res) {
         const input = req.body;
-        console.log("postPayment sandbox form input", input);
+        console.log("sandbox form input", input);
         const ipAddress = req.socket.remoteAddress;
-        console.log("ipAddress", ipAddress);
-        const ipAddresses = req.header('x-forwarded-for');
-        console.log("ipAddresses", ipAddresses);
 
         const form = {
             ... input,

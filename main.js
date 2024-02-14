@@ -2,6 +2,7 @@ ReactDOM = require('react-dom');
 React = require('react');
 
 window.valid = require('card-validator');
+window.zoid = require('zoid/dist/zoid.frameworks.min.js');
 
 const countryDataObj = require('country-data').countries;
 
