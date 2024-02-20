@@ -1,7 +1,6 @@
 {
   "name": "payment-form-widget",
   "version": "0.0.1",
-  "website": "",
   "private": true,
   "scripts": {
     "start": "serve -s ./public",

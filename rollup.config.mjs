@@ -5,9 +5,6 @@ import babel from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
-import serve from 'rollup-plugin-serve';
-import livereload from 'rollup-plugin-livereload';
-
 
 config();
 
@@ -50,23 +47,6 @@ export default {
          'process.env.URL_PRODUCTION': JSON.stringify(process.env.URL_PRODUCTION),
       }), 
       json(),
-      nodePolyfills(),
-      serve({
-         open: true,
-         contentBase: './public',
-         host: hostname,
-         port: port,
-         https: https,
-         verbose: true,
-         onListening: function(server) {
-            console.log("server", server);
-            const address = server.address()
-            const host = address.address === '::' ? 'localhost' : address.address
-            // by using a bound function, we can access options as `this`
-            const protocol = this.https ? 'https' : 'http'
-            console.log(`Server listening at ${protocol}://${host}:${address.port}/`)
-         }
-      }),
-      livereload({ watch: './public' })
+      nodePolyfills()
    ]
 }
