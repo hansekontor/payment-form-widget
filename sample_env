@@ -1,14 +1,14 @@
-#  for any other value than "development" production settings will be applied 
+#  use 'devlopment' or 'production'
 NODE_ENV = development
 
 # URLs for payment server
 URL_SANDBOX = 
 URL_PRODUCTION = 
 
-# hosting settings (only required when NODE_ENV != development)
+# hosting settings (only required when NODE_ENV != development, PORT unused)
 HOSTNAME = 
 PORT = 443
 
-# paths should lead to RSA certs
-PATH_SSL_CERT = /etc/letsencrypt/live/<yourdomain>/fullchain.pem 
-PATH_SSL_KEY = /etc/letsencrypt/live/<yourdomain>/privkey.pem
+# paths should lead to RSA certs (only required if you add scripts to include them)
+SSL_CERT = /etc/letsencrypt/live/<yourdomain>/fullchain.pem 
+SSL_KEY = /etc/letsencrypt/live/<yourdomain>/privkey.pem

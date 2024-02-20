@@ -9,17 +9,6 @@ import nodePolyfills from 'rollup-plugin-polyfill-node';
 config();
 
 const devMode = process.env.NODE_ENV !== 'production';
-const hostname = devMode ? 'localhost' : process.env.HOSTNAME;
-let https = false;
-let httpsOptions;
-if (!devMode) {
-   const httpsOptions = {
-      key: fs.readFileSync(process.env.SSL_KEY),
-      cert: fs.readFileSync(process.env.SSL_CERT)
-   };
-   https = httpsOptions;   
-}
-const port = devMode ? 8000 : process.env.PORT;
 
 export default {
    input: 'src/index.js',
