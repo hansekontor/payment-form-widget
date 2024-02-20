@@ -1,16 +1,14 @@
+#  for any other value than "development" production settings will be applied 
 NODE_ENV = development
 
-HOSTNAME = localhost
+# URLs for payment server
+URL_SANDBOX = 
+URL_PRODUCTION = 
 
-SSL_PRIVKEY = /etc/letsencrypt/live/yourdomain/privkey.pem
-SSL_FULLCHAIN = /etc/letsencrypt/live/yourdomain/fullchain.pem
+# hosting settings (only required when NODE_ENV != development)
+HOSTNAME = 
+PORT = 443
 
-#If commented out, defaults to HTTP: 8000, HTTPS: 3000
-#HTTPS_PORT = 443
-#HTTP_PORT = 80
-
-#Redis settings (password generally only needed for remote instances)
-REDIS_HOST = 127.0.0.1
-REDIS_PORT = 6379
-REDIS_DB = 0
-#REDIS_PASSWORD = password
+# paths should lead to RSA certs
+PATH_SSL_CERT = /etc/letsencrypt/live/<yourdomain>/fullchain.pem 
+PATH_SSL_KEY = /etc/letsencrypt/live/<yourdomain>/privkey.pem
