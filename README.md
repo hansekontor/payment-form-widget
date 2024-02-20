@@ -27,9 +27,10 @@ To start the application (in developer mode) using nodemon run
 sudo npm start
 ```
 
-To start the application as a standalone daemon, run 
+To deploy the application, run 
 
 ```bash
+sudo serve -s ./public --ssl-cert "/etc/letsencrypt/live/<yourdomain>/fullchain.pem" --ssl-key "/etc/letsencrypt/live/<yourdomain>/privkey.pem"
 ```
 
 If changes have been made to the files, run this command before starting the app.
@@ -45,7 +46,7 @@ This application can be loaded as an iframe into a parent component utilizing zo
 ```js
 const PaymentForm = zoid.create({
     tag: "payment-form-widget",
-    url: url,
+    url: "http://localhost:8000",
     dimensions: {
         width: "100%",
         height: "100%"
